@@ -3,11 +3,9 @@ import pandas as pd
 import os
 
 # --- Cores da Sua Logo (Substitua pelos códigos hexadecimais da sua marca!) ---
-# Você pode usar ferramentas online (como "color picker from image" no Google)
-# para extrair as cores da sua Slide1.JPG.
-PRIMARY_COLOR = "#007BFF"  # Exemplo: cor principal para títulos e botões
-SECONDARY_COLOR = "#28A745" # Exemplo: cor secundária para cabeçalhos de seção e hover
-TEXT_COLOR = "#333333"      # Exemplo: cor para textos gerais (opcional, Streamlit já tem um bom padrão)
+PRIMARY_COLOR = "#007BFF"
+SECONDARY_COLOR = "#28A745"
+TEXT_COLOR = "#333333"
 
 # --- Configurações Iniciais da Página ---
 st.set_page_config(layout="wide", page_title="Briefing de Clientes")
@@ -15,38 +13,34 @@ st.set_page_config(layout="wide", page_title="Briefing de Clientes")
 # --- Injetar CSS Personalizado para as Cores ---
 st.markdown(f"""
     <style>
-    /* Estilo para o título principal do app */
-    .st-emotion-cache-1jmve3k {{ /* Esta classe pode variar em futuras versões do Streamlit */
+    .st-emotion-cache-1jmve3k {{
         color: {PRIMARY_COLOR};
     }}
-    /* Estilo para os cabeçalhos de seção (Etapa 1, Etapa 2, etc.) */
     h2 {{
         color: {SECONDARY_COLOR};
     }}
-    /* Estilo para botões de submissão de formulário */
-    .st-emotion-cache-nahz7x.e1nzilvr1 {{ /* Esta classe pode variar em futuras versões do Streamlit */
+    .st-emotion-cache-nahz7x.e1nzilvr1 {{
         background-color: {PRIMARY_COLOR};
         color: white;
         border-color: {PRIMARY_COLOR};
     }}
-    .st-emotion-cache-nahz7x.e1nzilvr1:hover {{ /* Efeito hover para botões de formulário */
+    .st-emotion-cache-nahz7x.e1nzilvr1:hover {{
         background-color: {SECONDARY_COLOR};
         border-color: {SECONDARY_COLOR};
         color: white;
     }}
-    .st-emotion-cache-nahz7x.e1nzilvr1:focus:not(:active) {{ /* Efeito foco para botões de formulário */
+    .st-emotion-cache-nahz7x.e1nzilvr1:focus:not(:active) {{
         background-color: {PRIMARY_COLOR};
         border-color: {PRIMARY_COLOR};
         color: white;
         box-shadow: none;
     }}
-    /* Estilo para botões de navegação (Voltar, Avançar, Salvar) */
     div.stButton > button:first-child {{
         background-color: {PRIMARY_COLOR};
         color: white;
         border-color: {PRIMARY_COLOR};
     }}
-    div.stButton > button:first-child:hover {{ /* Efeito hover para botões de navegação */
+    div.stButton > button:first-child:hover {{
         background-color: {SECONDARY_COLOR};
         border-color: {SECONDARY_COLOR};
         color: white;
@@ -55,20 +49,17 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # --- Adicionar Logotipo ---
-# Certifique-se de que 'Slide1.JPG' esteja na mesma pasta do seu script Python.
-st.image("Slide1.JPG", width=200) # Ajuste 'width' para o tamanho ideal da sua logo no app
+st.image("Slide1.JPG", width=200)
 
 # Inicializa o estado da sessão para controlar as etapas e os dados
 if 'current_step' not in st.session_state:
     st.session_state.current_step = 1
 if 'briefing_data' not in st.session_state:
     st.session_state.briefing_data = {}
-# Novo estado para controlar se o briefing foi finalizado e o download deve ser exibido
 if 'briefing_finalizado' not in st.session_state:
     st.session_state.briefing_finalizado = False
 
-
-st.title("Briefing de Clientes VIMAK PLAMEJADOS 📝")
+st.title("Programa de Briefing de Clientes 📝")
 
 # --- Funções para Navegação e Salvamento ---
 
@@ -86,7 +77,7 @@ def save_briefing_to_csv(data):
         df = pd.concat([existing_df, df], ignore_index=True)
     df.to_csv(csv_file, index=False)
     st.success(f"Briefing salvo com sucesso em '{csv_file}'!")
-    st.session_state.briefing_finalizado = True # Seta o estado para mostrar o botão de download
+    st.session_state.briefing_finalizado = True
 
 
 # --- Etapa 1: Cadastro do Cliente ---
@@ -132,6 +123,16 @@ elif st.session_state.current_step == 2:
             st.session_state.briefing_data['outros_ambientes_desc'] = st.text_input("Especifique outros ambientes", value=st.session_state.briefing_data.get('outros_ambientes_desc', ''))
         else:
             st.session_state.briefing_data['outros_ambientes_desc'] = ""
+
+        # --- NOVO CAMPO: Valor de Investimento do Projeto ---
+        st.session_state.briefing_data['valor_investimento'] = st.number_input(
+            "Valor de Investimento Estimado do Projeto (R$)",
+            min_value=0.0,
+            value=st.session_state.briefing_data.get('valor_investimento', 0.0),
+            step=500.0,
+            format="%.2f"
+        )
+        # --- FIM NOVO CAMPO ---
 
         col1, col2 = st.columns(2)
         with col1:
@@ -252,12 +253,9 @@ elif st.session_state.current_step == 4:
             submitted4 = st.form_submit_button("Finalizar Briefing e Salvar")
             if submitted4:
                 save_briefing_to_csv(st.session_state.briefing_data)
-                # O st.success e o st.download_button serão exibidos depois do rerunning
-                # e fora do form, graças ao st.session_state.briefing_finalizado = True
-                st.rerun() # Dispara um rerun para que o estado atualize e o botão seja exibido
+                st.rerun()
 
 # --- Exibir botão de download e resetar o formulário APÓS a Etapa 4 ser finalizada ---
-# Este bloco agora está FORA de qualquer st.form()
 if st.session_state.briefing_finalizado:
     st.success("Briefing finalizado! Você pode baixar o CSV abaixo ou iniciar um novo briefing.")
     csv_file = "briefings_clientes.csv"
@@ -269,9 +267,8 @@ if st.session_state.briefing_finalizado:
                 file_name=csv_file,
                 mime="text/csv"
             )
-    # Botão para iniciar um novo briefing
     if st.button("Iniciar Novo Briefing"):
         st.session_state.briefing_data = {}
         st.session_state.current_step = 1
-        st.session_state.briefing_finalizado = False # Reseta o estado
+        st.session_state.briefing_finalizado = False
         st.rerun()
